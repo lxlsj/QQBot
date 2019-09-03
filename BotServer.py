@@ -18,7 +18,7 @@ from tornado.options import define
 from tornado.options import options
 from tornado.web import Application
 
-from BaseHandler import MahuaHandler, IndexHandler
+import BaseHandler
 import MsgHandler
 
 
@@ -36,8 +36,8 @@ class BotApplication(Application):
 
     def __init__(self, *args, **kwargs):  # @UnusedVariable
         handlers = [
-            (r'/api/ReceiveMahuaOutput', MahuaHandler),
-            (r'/.*', IndexHandler)
+            (r'/api/ReceiveMahuaOutput', BaseHandler.MahuaHandler),
+            (r'/.*', BaseHandler.IndexHandler)
         ]
         settings = {'debug': False}
         super(BotApplication, self).__init__(handlers, **settings)
@@ -49,7 +49,7 @@ def recvMessage():
     """
     while 1:
         nxt = sleep(0.01)
-        message = yield MsgHandler.MessageInQueue.get()
+        message = yield BaseHandler.MessageInQueue.get()
         try:
             yield MsgHandler._recv_message(message)
         except Exception as e:
@@ -63,9 +63,9 @@ def sendMessage():
     """
     while 1:
         nxt = sleep(0.01)
-        message, kwargs = yield MsgHandler.MessageOutQueue.get()
+        message = yield BaseHandler.MessageOutQueue.get()
         try:
-            yield MsgHandler._send_message(message, **kwargs)
+            yield MsgHandler._send_message(message)
         except Exception as e:
             logging.warn(str(e))
         yield nxt

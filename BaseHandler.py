@@ -14,14 +14,18 @@ import logging
 
 from tornado.escape import to_basestring
 from tornado.gen import coroutine
+from tornado.queues import Queue
 from tornado.web import RequestHandler
-
-import MsgHandler
 
 
 __Author__ = 'Irony'
 __Copyright__ = 'Copyright (c) 2019 Irony'
 __Version__ = 1.0
+
+# 待处理消息队列
+MessageInQueue = Queue()
+# 待发送消息队列
+MessageOutQueue = Queue()
 
 
 class DottedDict(dict):
@@ -30,8 +34,9 @@ class DottedDict(dict):
     def __getattr__(self, attr):
         try:
             return self[attr]
-        except KeyError:
-            raise AttributeError("'{}'".format(attr))
+        except KeyError as e:
+            logging.debug(e)
+            return None
 
     __setattr__ = dict.__setitem__
 
@@ -60,7 +65,6 @@ class MahuaHandler(RequestHandler):
 
     @coroutine
     def post(self, *args, **kwargs):  # @UnusedVariable
-        print(self._data)
         # 把消息放入队列
-        yield MsgHandler.MessageInQueue.put(self._data)
+        yield MessageInQueue.put(self._data)
         self.finish({'msg': 'ok'})
