@@ -17,6 +17,8 @@ from tornado.gen import coroutine
 from tornado.queues import Queue
 from tornado.web import RequestHandler
 
+from BotInterface import DottedDict
+
 
 __Author__ = 'Irony'
 __Copyright__ = 'Copyright (c) 2019 Irony'
@@ -26,21 +28,6 @@ __Version__ = 1.0
 MessageInQueue = Queue()
 # 待发送消息队列
 MessageOutQueue = Queue()
-
-
-class DottedDict(dict):
-    # 用于实现通过.方式直接访问字典中的数据
-
-    def __getattr__(self, attr):
-        try:
-            return self[attr]
-        except KeyError as e:
-            logging.debug(e)
-            return None
-
-    __setattr__ = dict.__setitem__
-
-    __delattr__ = dict.__delitem__
 
 
 class IndexHandler(RequestHandler):
