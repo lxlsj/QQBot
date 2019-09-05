@@ -2,43 +2,24 @@
 # -*- coding: utf-8 -*-
 
 """
-Created on 2019年9月2日
+Created on 2019年9月6日
 @author: Irony
 @site: https://pyqt5.com https://github.com/892768447
 @email: 892768447@qq.com
-@file: MsgHandler
-@description: 
+@file: BotExample
+@description: 例子
 """
 from tornado.gen import coroutine
 
-import BotInterface
+from MsgHandler import MsgHandler
+import BotServer
 
 
 __Author__ = 'Irony'
-__Copyright__ = 'Copyright (c) 2019 Irony'
-__Version__ = 1.0
+__Copyright__ = 'Copyright (c) 2019'
 
 
-class MsgHandler:
-
-    @coroutine
-    def _send_message(self):
-        """发送队列消息
-        """
-        message = yield BotInterface.MessageOutQueue.get()
-
-    @coroutine
-    def _recv_message(self):
-        """接收队列消息
-        """
-        message = yield BotInterface.MessageInQueue.get()
-        message = BotInterface.Interface.getMsgInfo(message)
-        if not message:
-            return
-        message = self.onMessage(message)
-        if not message:
-            return
-        BotInterface.MessageOutQueue.put(message)
+class BotMsgHandler(MsgHandler):
 
     @coroutine
     def onMessage(self, message):
@@ -54,3 +35,12 @@ class MsgHandler:
             }
         :return: 返回message表示处理，返回None表示忽略
         """
+        if message.QQ == '10000':
+            # 系统消息，也有可能是撤回消息
+            return
+        # 这里只做复读机功能
+        return message
+
+
+if __name__ == '__main__':
+    BotServer.main(BotMsgHandler())

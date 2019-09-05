@@ -18,8 +18,7 @@ from tornado.options import define
 from tornado.options import options
 from tornado.web import Application
 
-import BaseHandler
-import MsgHandler
+from BaseHandler import MahuaHandler, IndexHandler
 
 
 __Author__ = 'Irony'
@@ -36,42 +35,40 @@ class BotApplication(Application):
 
     def __init__(self, *args, **kwargs):  # @UnusedVariable
         handlers = [
-            (r'/api/ReceiveMahuaOutput', BaseHandler.MahuaHandler),
-            (r'/.*', BaseHandler.IndexHandler)
+            (r'/api/ReceiveMahuaOutput', MahuaHandler),
+            (r'/.*', IndexHandler)
         ]
         settings = {'debug': False}
         super(BotApplication, self).__init__(handlers, **settings)
 
 
 @coroutine
-def recvMessage():
+def recvMessage(msgHandler):
     """队列处理消息
     """
     while 1:
         nxt = sleep(0.01)
-        message = yield BaseHandler.MessageInQueue.get()
         try:
-            yield MsgHandler._recv_message(message)
+            yield msgHandler._recv_message()
         except Exception as e:
             logging.exception(e)
         yield nxt
 
 
 @coroutine
-def sendMessage():
+def sendMessage(msgHandler):
     """队列发送消息
     """
     while 1:
         nxt = sleep(0.01)
-        message = yield BaseHandler.MessageOutQueue.get()
         try:
-            yield MsgHandler._send_message(message)
+            yield msgHandler._send_message()
         except Exception as e:
             logging.warn(str(e))
         yield nxt
 
 
-def main():
+def main(msgHandler):
     # 解析命令行参数
     options.parse_command_line()
 
@@ -85,11 +82,7 @@ def main():
     server.listen(options.sport, options.shost)
     loop = IOLoop.current()
     # 队列处理消息
-    loop.spawn_callback(recvMessage)
+    loop.spawn_callback(recvMessage, msgHandler)
     # 队列发送消息
-    loop.spawn_callback(sendMessage)
+    loop.spawn_callback(sendMessage, msgHandler)
     loop.start()
-
-
-if __name__ == '__main__':
-    main()

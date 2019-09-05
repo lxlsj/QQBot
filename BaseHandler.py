@@ -14,20 +14,15 @@ import logging
 
 from tornado.escape import to_basestring
 from tornado.gen import coroutine
-from tornado.queues import Queue
 from tornado.web import RequestHandler
 
 from BotInterface import DottedDict
+import BotInterface
 
 
 __Author__ = 'Irony'
 __Copyright__ = 'Copyright (c) 2019 Irony'
 __Version__ = 1.0
-
-# 待处理消息队列
-MessageInQueue = Queue()
-# 待发送消息队列
-MessageOutQueue = Queue()
 
 
 class IndexHandler(RequestHandler):
@@ -53,5 +48,5 @@ class MahuaHandler(RequestHandler):
     @coroutine
     def post(self, *args, **kwargs):  # @UnusedVariable
         # 把消息放入队列
-        yield MessageInQueue.put(self._data)
+        yield BotInterface.MessageInQueue.put(self._data)
         self.finish({'msg': 'ok'})
