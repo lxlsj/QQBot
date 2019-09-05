@@ -28,7 +28,7 @@ def _send_message(message):
 
 @coroutine
 def _recv_message(message):
-    """处理接收消息
+    """接收队列消息
     :param message:
     """
     message = Interface.getMsgInfo(message)
