@@ -10,14 +10,16 @@ Created on 2019年9月4日
 @description: 统一接口
 """
 from enum import Enum
-from urllib.parse import urlencode
+import json
 import logging
 import os
 import re
+from urllib.parse import urlencode
 
 from tornado.escape import to_basestring
 from tornado.gen import coroutine
 from tornado.httpclient import AsyncHTTPClient
+from tornado.options import options
 from tornado.queues import Queue
 
 
@@ -130,7 +132,7 @@ class Interface(Enum):
         return re.sub('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', '', message)
 
     @coroutine
-    def get(self, url, json=False, binary=False, **kwargs):
+    def get(self, url, retJson=False, retBinary=False, **kwargs):
         """http get请求数据
         :param url:                网址
         :param json:               返回json
@@ -138,20 +140,20 @@ class Interface(Enum):
         """
         client = AsyncHTTPClient()
         headers = DefaultHeaders.copy().update(kwargs.pop('headers', {}))
-        resp = yield client.fetch(url, method='GET', headers=headers, **kwargs)
+        resp = yield client.fetch(url, method='GET', headers=headers, max_redirects=3, **kwargs)
         if not resp.body:
-            return
-        if binary:
-            return resp.body
-        if json:
+            return resp.code, ''
+        if retBinary:
+            return resp.code, resp.body
+        if retJson:
             try:
-                return json.loads(to_basestring(resp.body.decode()), object_hook=DottedDict)
+                return resp.code, json.loads(to_basestring(resp.body.decode()), object_hook=DottedDict)
             except:
-                return DottedDict()
-        return resp.body.decode()
+                return resp.code, DottedDict()
+        return resp.code, resp.body.decode()
 
     @coroutine
-    def post(self, url, body=None, json=False, binary=False, **kwargs):
+    def post(self, url, body=None, data=None, retJson=False, retBinary=False, **kwargs):
         """http post请求数据
         :param url:                网址
         :param url:                待提交的json格式数据
@@ -159,42 +161,96 @@ class Interface(Enum):
         :param binary:             返回原始数据
         """
         client = AsyncHTTPClient()
-        headers = DefaultHeaders.copy().update(kwargs.pop('headers', {}))
-        resp = yield client.fetch(url, method='POST', body=urlencode(body), headers=headers, **kwargs)
+        headers = DefaultHeaders.copy()
+        headers.update(kwargs.pop('headers', {}))
+        if data:
+            headers['Content-Type'] = 'application/json; charset=utf-8'
+            body = json.dumps(data)
+        elif body:
+            body = urlencode(body) if body else ''
+        else:
+            body = ''
+        resp = yield client.fetch(url, method='POST', body=body, headers=headers, max_redirects=3, **kwargs)
         if not resp.body:
-            return
-        if binary:
-            return resp.body
-        if json:
+            return resp.code, ''
+        if retBinary:
+            return resp.code, resp.body
+        if retJson:
             try:
-                return json.loads(to_basestring(resp.body.decode()), object_hook=DottedDict)
+                return resp.code, json.loads(to_basestring(resp.body.decode()), object_hook=DottedDict)
             except:
-                return DottedDict()
-        return resp.body.decode()
+                return resp.code, DottedDict()
+        return resp.code, resp.body.decode()
 
     def escape(self, message):
         """文本转义
         :param message:
         """
-        if self == Interface.Qy:
+        if self == Interface.Qy or self == Interface.Cqp:
             message = message.replace('&', '&amp;').replace(
-                ',', '&#44;').replace('[', '&#91;').replace(']', '&#93;')
-        elif self == Interface.Cqp:
-            message = message.replace('&', '&amp;').replace(
-                '[', '&#91;').replace(']', '&#93;')
+                '[', '&#91;').replace(']', '&#93;').replace(',', '&#44;')
         return message
 
     def unescape(self, message):
         """文本反转义
         :param message:
         """
-        if self == Interface.Qy:
+        if self == Interface.Qy or self == Interface.Cqp:
             message = message.replace('&#44;', ',').replace(
                 '&#91;', '[').replace('&#93;', ']').replace('&amp;', '&')
-        elif self == Interface.Cqp:
-            message = message.replace('&#91;', '[').replace(
-                '&#93;', ']').replace('&amp;', '&')
         return message
+
+    @coroutine
+    def sendMsg(self, message):
+        """发送消息
+        :param message:
+        """
+        # 酷Q Cqp/CQ_sendPrivateMsg, Cqp/CQ_sendGroupMsg,Cqp/CQ_sendDiscussMsg
+        # CleverQQ CleverQQ/Api_SendMsg, CleverQQ/Api_SendXML, CleverQQ/Api_SendJSON
+        # 0在线临时会话 1好友 2群 3讨论组 4群临时会话 5讨论组临时会话 7好友验证回复会话（0、7只支持Pro版）
+        # -1为随机气泡
+        # 0 基本 2 点歌
+        # Mpq Mpq/Api_SendMsg
+        # 1好友 2群 3讨论组 4群临时会话 5讨论组临时会话
+        # QQLight QQLight/Api_SendMsg
+        # 1.好友消息 2.群消息 3.群临时消息 4.讨论组消息 5.讨论组临时消息 6.QQ临时消息
+        url = 'http://{0}:{1}/api/v1/{2}/Api_SendMsg'.format(
+            options.ahost, options.aport, self.name,
+            'Api_SendMsg' if self != Interface.Cqp else 'CQ_sendPrivateMsg'
+            if message.MessageType == 21 else 'CQ_sendGroupMsg'
+            if message.MessageType == 2 else 'CQ_sendDiscussMsg'
+            if message.MessageType == 4 else '')
+        if not url.endswith('Msg'):
+            logging.warning('url({0}) is bad'.format(url))
+            return
+        QQInt = int(message.QQ) if message.QQ else 0
+        QQStr = message.QQ if message.QQ else ''
+        GroupInt = int(message.Group) if message.Group else 0
+        GroupStr = message.Group if message.Group else ''
+        data = {
+            # 酷Q
+            'qqid': QQInt,
+            '群号': GroupInt,
+            '讨论组号': GroupInt,
+            'msg': message.Message,
+            # CleverQQ, Mpq
+            '响应的QQ': '',  # 自己
+            '信息类型': message.MessageType,
+            '参考子类型': 0,  # 无特殊说明情况下留空或填零
+            '收信群_讨论组': GroupStr,
+            '收信对象群_讨论组': GroupStr,
+            '收信对象': QQStr,
+            '收信QQ': QQStr,
+            '气泡ID': -1,      # CleverQQ 气泡 -1随机
+            # QQLight
+            '类型': message.MessageType,
+            '群组': GroupStr,
+            'qQ号': QQStr,
+            '内容': message.Message,
+        }
+        code, data = yield self.post(url, data=data)
+        logging.debug(
+            'sendMsg return [code: {0}, data: {1}]'.format(code, data))
 
     @classmethod
     def getMsgInfo(cls, message):
@@ -208,6 +264,7 @@ class Interface(Enum):
             'Message': '扯淡兔',         # 过滤后的消息
             'Ats': [],                  # 被艾特人列表
             'MessageId': '消息ID',      # 消息ID（撤回用）或者为空
+            'MessageType': 1,          # 消息类型
             'Interface':  < Interface.QQLight: 4 >  # 统一封装接口
         }
         """
@@ -215,6 +272,8 @@ class Interface(Enum):
         RawMessage = message.Message
         if RawMessage is None:
             return None
+        # 消息类型
+        MessageType = message.EventType or message.Type
         # 0-酷Q, 1-MPQ, 2-Amanda, 3-CleverQQ, 4-QQLight
         # 接口实例
         _Interface = cls(message.Platform)
@@ -231,6 +290,8 @@ class Interface(Enum):
             Message=_Interface.unescape(_Interface.filterMsg(RawMessage)),
             # 消息ID（MPQ没有）
             MessageId=message.MessageId,
+            # 消息类型
+            MessageType=MessageType,
             # 被艾特的人列表
             Ats=_Interface.getAts(RawMessage)
         )

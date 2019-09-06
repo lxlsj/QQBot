@@ -9,10 +9,11 @@ Created on 2019年9月6日
 @file: BotExample
 @description: 例子
 """
+
 from tornado.gen import coroutine
 
-from MsgHandler import MsgHandler
 import BotServer
+from MsgHandler import MsgHandler
 
 
 __Author__ = 'Irony'
@@ -39,6 +40,7 @@ class BotMsgHandler(MsgHandler):
             # 系统消息，也有可能是撤回消息
             return
         # 这里只做复读机功能
+        message.Message = message.RawMessage        # 把过滤消息还原为原始消息
         return message
 
 

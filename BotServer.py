@@ -11,6 +11,7 @@ Created on 2019年9月2日
 """
 import logging
 
+import colorama
 from tornado.gen import coroutine, sleep
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
@@ -64,12 +65,18 @@ def sendMessage(msgHandler):
         try:
             yield msgHandler._send_message()
         except Exception as e:
-            logging.warn(str(e))
+            logging.exception(e)
         yield nxt
 
 
 def main(msgHandler):
+    # 初始化日志和异常捕捉
+    colorama.init()
+    # enable_pretty_logging()
+
     # 解析命令行参数
+    options.log_file_prefix = options.log_file_prefix or 'log.log'
+    options.log_to_stderr = options.log_to_stderr or True
     options.parse_command_line()
 
     logging.info('shost: {}'.format(options.shost))

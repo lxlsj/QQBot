@@ -26,6 +26,7 @@ class MsgHandler:
         """发送队列消息
         """
         message = yield BotInterface.MessageOutQueue.get()
+        yield message.Interface.sendMsg(message)
 
     @coroutine
     def _recv_message(self):
@@ -35,7 +36,7 @@ class MsgHandler:
         message = BotInterface.Interface.getMsgInfo(message)
         if not message:
             return
-        message = self.onMessage(message)
+        message = yield self.onMessage(message)
         if not message:
             return
         BotInterface.MessageOutQueue.put(message)
@@ -50,6 +51,7 @@ class MsgHandler:
                 'Message': '扯淡兔',         # 过滤后的消息
                 'Ats': [],                  # 被艾特人列表
                 'MessageId': '消息ID',      # 消息ID（撤回用）或者为空
+                'MessageType': 1,          # 消息类型
                 'Interface':  < Interface.QQLight: 4 >  # 统一封装接口
             }
         :return: 返回message表示处理，返回None表示忽略
