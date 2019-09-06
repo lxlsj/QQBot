@@ -10,11 +10,11 @@ Created on 2019年9月4日
 @description: 统一接口
 """
 from enum import Enum
+from urllib.parse import urlencode
 import json
 import logging
 import os
 import re
-from urllib.parse import urlencode
 
 from tornado.escape import to_basestring
 from tornado.gen import coroutine
@@ -205,15 +205,6 @@ class Interface(Enum):
         """发送消息
         :param message:
         """
-        # 酷Q Cqp/CQ_sendPrivateMsg, Cqp/CQ_sendGroupMsg,Cqp/CQ_sendDiscussMsg
-        # CleverQQ CleverQQ/Api_SendMsg, CleverQQ/Api_SendXML, CleverQQ/Api_SendJSON
-        # 0在线临时会话 1好友 2群 3讨论组 4群临时会话 5讨论组临时会话 7好友验证回复会话（0、7只支持Pro版）
-        # -1为随机气泡
-        # 0 基本 2 点歌
-        # Mpq Mpq/Api_SendMsg
-        # 1好友 2群 3讨论组 4群临时会话 5讨论组临时会话
-        # QQLight QQLight/Api_SendMsg
-        # 1.好友消息 2.群消息 3.群临时消息 4.讨论组消息 5.讨论组临时消息 6.QQ临时消息
         url = 'http://{0}:{1}/api/v1/{2}/Api_SendMsg'.format(
             options.ahost, options.aport, self.name,
             'Api_SendMsg' if self != Interface.Cqp else 'CQ_sendPrivateMsg'
@@ -234,7 +225,7 @@ class Interface(Enum):
             '讨论组号': GroupInt,
             'msg': message.Message,
             # CleverQQ, Mpq
-            '响应的QQ': '',  # 自己
+            '响应的QQ': message.RQQ,  # 自己
             '信息类型': message.MessageType,
             '参考子类型': 0,  # 无特殊说明情况下留空或填零
             '收信群_讨论组': GroupStr,
@@ -260,8 +251,9 @@ class Interface(Enum):
         :return: {
             'Group': 'QQ群',            # 发送的QQ群或者为空
             'QQ': '发送人QQ',            # 消息发送人QQ
-            'RawMessage': '扯淡兔',      # 原始消息
-            'Message': '扯淡兔',         # 过滤后的消息
+            'RQQ': '机器人QQ'            # 机器人QQ
+            'RawMessage': '原始消息',      # 原始消息
+            'Message': '过滤后的消息',       # 过滤后的消息
             'Ats': [],                  # 被艾特人列表
             'MessageId': '消息ID',      # 消息ID（撤回用）或者为空
             'MessageType': 1,          # 消息类型
@@ -282,12 +274,15 @@ class Interface(Enum):
             Interface=_Interface,
             # 发送人
             QQ=message.EventOperator or message.Fromqq,
+            # 机器人QQ
+            RQQ=message.ReceiverQq or '',
             # 群号
             Group=message.FromNum or message.Fromgroup,
             # 原始文本消息
-            RawMessage=RawMessage,
+            RawMessage=RawMessage.strip(),
             # 过滤后的纯文本消息
-            Message=_Interface.unescape(_Interface.filterMsg(RawMessage)),
+            Message=_Interface.unescape(
+                _Interface.filterMsg(RawMessage)).strip(),
             # 消息ID（MPQ没有）
             MessageId=message.MessageId,
             # 消息类型

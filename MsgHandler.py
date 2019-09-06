@@ -34,7 +34,7 @@ class MsgHandler:
         """
         message = yield BotInterface.MessageInQueue.get()
         message = BotInterface.Interface.getMsgInfo(message)
-        if not message:
+        if not message or not message.Message or message.MessageType < 0 or message.MessageType > 8:
             return
         message = yield self.onMessage(message)
         if not message:
@@ -47,8 +47,9 @@ class MsgHandler:
         :param message: {
                 'Group': 'QQ群',            # 发送的QQ群或者为空
                 'QQ': '发送人QQ',            # 消息发送人QQ
-                'RawMessage': '扯淡兔',      # 原始消息
-                'Message': '扯淡兔',         # 过滤后的消息
+                'RQQ': '机器人QQ'            # 机器人QQ
+                'RawMessage': '原始消息',      # 原始消息
+                'Message': '过滤后的消息',     # 过滤后的消息
                 'Ats': [],                  # 被艾特人列表
                 'MessageId': '消息ID',      # 消息ID（撤回用）或者为空
                 'MessageType': 1,          # 消息类型
