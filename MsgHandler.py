@@ -34,12 +34,14 @@ class MsgHandler:
         """
         message = yield BotInterface.MessageInQueue.get()
         message = BotInterface.Interface.getMsgInfo(message)
-        if not message or not message.Message or message.MessageType < 0 or message.MessageType > 8:
+        if not message or not message.Message:
             return
-        message = yield self.onMessage(message)
-        if not message:
-            return
-        BotInterface.MessageOutQueue.put(message)
+        if 0 < message.MessageType < 8:
+            # 私聊或者群消息
+            message = yield self.onMessage(message)
+            if not message:
+                return
+            BotInterface.MessageOutQueue.put(message)
 
     @coroutine
     def onMessage(self, message):
