@@ -34,7 +34,7 @@ class MsgHandler:
         """
         message = yield BotInterface.MessageInQueue.get()
         message = BotInterface.Interface.getMsgInfo(message)
-        if not message or not message.Message:
+        if not message or not message.RawMessage:
             return
         if 0 < message.MessageType < 8:
             # 私聊或者群消息

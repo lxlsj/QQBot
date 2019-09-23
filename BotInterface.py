@@ -10,11 +10,11 @@ Created on 2019年9月4日
 @description: 统一接口
 """
 from enum import Enum
-from urllib.parse import urlencode
 import json
 import logging
 import os
 import re
+from urllib.parse import urlencode
 
 from tornado.escape import to_basestring
 from tornado.gen import coroutine
@@ -53,6 +53,11 @@ class DottedDict(dict):
     __setattr__ = dict.__setitem__
 
     __delattr__ = dict.__delitem__
+
+
+class CqMsgType(Enum):
+    """针对酷Q的消息类型"""
+    CQ_sendPrivateMsg, CQ_sendGroupMsg, CQ_sendDiscussMsg = 1, 2, 3
 
 
 class Interface(Enum):
@@ -205,12 +210,13 @@ class Interface(Enum):
         """发送消息
         :param message:
         """
-        url = 'http://{0}:{1}/api/v1/{2}/Api_SendMsg'.format(
+        if not message.MessageType:
+            logging.warning(
+                'message type({0}) not found'.format(message.MessageType))
+            return
+        url = 'http://{0}:{1}/api/v1/{2}/{3}'.format(
             options.ahost, options.aport, self.name,
-            'Api_SendMsg' if self != Interface.Cqp else 'CQ_sendPrivateMsg'
-            if message.MessageType == 21 else 'CQ_sendGroupMsg'
-            if message.MessageType == 2 else 'CQ_sendDiscussMsg'
-            if message.MessageType == 4 else '')
+            'Api_SendMsg' if self != Interface.Cqp else CqMsgType(message.MessageType).name)
         if not url.endswith('Msg'):
             logging.warning('url({0}) is bad'.format(url))
             return
@@ -261,11 +267,20 @@ class Interface(Enum):
         }
         """
         # 文本消息
-        RawMessage = message.Message
+        RawMessage = message.Message or message.Msg
         if RawMessage is None:
             return None
         # 消息类型
-        MessageType = message.EventType or message.Type
+        if 'SubType' in message:
+            if message.SubType == 11:
+                MessageType = CqMsgType.CQ_sendPrivateMsg.value
+            else:
+                MessageType = CqMsgType.CQ_sendPrivateMsg.value if message.TypeCode == 'ProcessPrivateMessage' \
+                    else CqMsgType.CQ_sendGroupMsg.value if message.TypeCode == 'ProcessGroupMessage' \
+                    else CqMsgType.CQ_sendDiscussMsg.value if message.TypeCode == 'ProcessDiscussGroupMessage' \
+                    else ''
+        else:
+            MessageType = message.EventType or message.Type
         # 0-酷Q, 1-MPQ, 2-Amanda, 3-CleverQQ, 4-QQLight
         # 接口实例
         _Interface = cls(message.Platform)
@@ -273,18 +288,18 @@ class Interface(Enum):
             # 0-酷Q, 1-MPQ, 2-Amanda, 3-CleverQQ, 4-QQLight
             Interface=_Interface,
             # 发送人
-            QQ=message.EventOperator or message.Fromqq,
+            QQ=message.EventOperator or message.Fromqq or message.FromQQ,
             # 机器人QQ
             RQQ=message.ReceiverQq or '',
             # 群号
-            Group=message.FromNum or message.Fromgroup,
+            Group=message.FromNum or message.Fromgroup or message.FromGroup or message.FromDiscuss,
             # 原始文本消息
             RawMessage=RawMessage.strip(),
             # 过滤后的纯文本消息
             Message=_Interface.unescape(
                 _Interface.filterMsg(RawMessage)).strip(),
             # 消息ID（MPQ没有）
-            MessageId=message.MessageId,
+            MessageId=message.MessageId or message.MsgId,
             # 消息类型
             MessageType=MessageType,
             # 被艾特的人列表
