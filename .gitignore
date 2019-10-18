@@ -1,7 +1,8 @@
 *.pyc
 *.pyo
 *.log
-*.cfg
+Account.cfg
+CQP.cfg
 CQA.key
 log.txt
 Data.dat
