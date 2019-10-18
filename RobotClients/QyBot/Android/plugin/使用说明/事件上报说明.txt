@@ -1,0 +1,26 @@
+
+事件上报 数据格式 json 有以下参数 
+
+port     来源端口
+
+qq       来源机器人
+
+eventType 事件类型 看事件ID
+
+sendTime  发送时间
+
+fromID 来源群号/讨论组ID
+
+fromQQ 来源QQ/操作QQ，当踢人时为操作者QQ
+
+operateQQ 被操作QQ
+
+content 消息内容
+
+seq 好友请求标识/群请求标识
+
+msgID 消息ID 撤回消息时用
+
+source 好友请求/群请求时请求来源
+
+其他可参考框架日志

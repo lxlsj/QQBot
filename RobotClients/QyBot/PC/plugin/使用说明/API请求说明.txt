@@ -1,0 +1,65 @@
+
+API 请求 post 方法 json 格式 参数 文本型
+
+请求地址 ：http://127.0.0.1:端口/
+
+4个框架类参数说明 
+
+{"api":"debug","content":"hello,world!"}  //添加调试日志
+
+{"api":"getQQType"} //获取QQ框架/协议类型
+
+{"api":"getConfigPath"} //获取框架配置路径 末尾带 \
+
+{"api":"getRunPath"} //获取运行路径
+
+
+
+8个获取类参数说明 
+
+{"api":"getCookie","qq":"753445573"} //获取cookie 返回文本型
+
+{"api":"getDomainCookie","qq":"753445573","content":"http://qun.qq.com/"} //获取指定域名Cookie  http://qun.qq.com 或 http://qun.qzone.qq.com 留空默认取http://qun.qq.com域登录跳转成功后的cookie。 返回文本型
+
+{"api":"getGroupList","qq":"753445573"} //获取群列表 返回json格式
+
+{"api":"getGroupMemberInfo","qq":"753445573","fromID":"群号","fromQQ":"成员QQ","content":"1"} //获取群成员信息 返回json格式 content 1/不使用缓存 2/使用缓存
+
+{"api":"getGroupMemberInfoList","qq":"753445573","fromID":"群号"} //获取群成员信息列表 返回Json格式
+
+{"api":"getLoginNick","qq":"753445573"} //获取登录QQ昵称 返回文本型
+
+{"api":"getLoginQQ"} //获取登录QQ 返回文本型
+
+{"api":"getStrangerInfo","qq":"753445573","fromQQ":"陌生人QQ"} //获取陌生人信息 返回Json格式
+
+
+
+
+
+12个接口类参数说明 
+
+{"api":"deleteMsg","qq":"753445573","content":"消息ID"} //撤回消息 
+
+{"api":"sendMsg","qq":"753445573","eventType":"0/在线临时会话 1/好友 2/群 3/讨论组 4/群临时会话 5/讨论组临时会话 7/好友验证回复会话","fromID":"讨论组/群号(4/5时填写)","fromQQ":"好友QQ/群成员QQ/讨论组成员QQ(2/3时不需要填写)","content":"消息内容"} //发送消息
+
+{"api":"sendXml","qq":"753445573","eventType":"0/在线临时会话 1/好友 2/群 3/讨论组 4/群临时会话 5/讨论组临时会话 7/好友验证回复会话","fromID":"讨论组/群号(4/5时填写)","fromQQ":"好友QQ/群成员QQ/讨论组成员QQ(2/3时不需要填写)","content":"消息内容"} //发送Xml消息
+
+{"api":"setDiscussLeave","qq":"753445573","fromID":"讨论组ID"} //退出讨论组
+
+{"api":"setFriendAddRequest","qq":"753445573","seq":"标识","msgType":"1/同意 2/拒绝","content":"同意后备注/拒绝后理由"} //处理好友请求
+
+{"api":"setGroupAddRequest","qq":"753445573","seq":"标识","eventType":"213/群添加 214群邀请","msgType":"1/同意 2/拒绝","content":"拒绝理由仅 群添加 且 拒绝 时可用"} //处理群请求
+
+{"api":"setGroupAdmin","qq":"753445573","fromID":"群号","fromQQ":"成员QQ","content":"1/上管理 2/取消管理"} //设置群管理员
+
+{"api":"setGroupLeave","qq":"753445573","fromID":"群号","content":"1/解散（退出自己创建的群时使用//PC协议不会退出自己创建的群。）"} //退出群
+
+{"api":"setGroupMemberBan","qq":"753445573","fromID":"群号","fromQQ":"成员QQ","content":"禁言时间单位：分"} //群成员禁言
+
+{"api":"setGroupMemberCard","qq":"753445573","fromID":"群号","fromQQ":"成员QQ","content":"群名片"} //设置群成员名片
+
+{"api":"setGroupMemberKick","qq":"753445573","fromID":"群号","fromQQ":"成员QQ","content":"1/不再接收此人加群申请，请慎用"} //移除群成员
+
+{"api":"setGroupMemberWholeBan","qq":"753445573","fromID":"群号","content":"1/开启全体禁言 2/关闭全体禁言"} //全体禁言
+

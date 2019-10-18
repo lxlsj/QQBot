@@ -1,18 +1,18 @@
 # QQBot
 
-利用 [Newbe.Mahua.Plugin.Agent](https://github.com/newbe36524/Newbe.Mahua.Framework) 插件实现各大机器人平台的Http接口功能
-
 对接QQBot Web Server服务端实现统一各大机器人平台收发数据
 
-开发中。。。目前暂时实现部分功能
+重构中
+
+Newbe.Mahua 分支见 [Newbe.Mahua](https://github.com/892768447/QQBot/tree/Newbe.Mahua)
 
 # 现状
 
- - 酷Q【正常】
- - CleverQQ【插件http接口异常】
- - MyPCQQ【正常】
- - QQLight【正常】
- - Qy【暂不支持】
+ - 酷Q【开发中】
+ - CleverQQ【抛弃】
+ - MyPCQQ【抛弃】
+ - QQLight【开发中】
+ - Qy【开发中】
 
 # Demo
 
