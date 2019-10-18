@@ -33,6 +33,8 @@ class MsgHandler:
         """接收队列消息
         """
         message = yield BotInterface.MessageInQueue.get()
+        print(message)
+        return
         message = BotInterface.Interface.getMsgInfo(message)
         if not message or not message.RawMessage:
             return

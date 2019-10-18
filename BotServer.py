@@ -26,10 +26,11 @@ __Author__ = 'Irony'
 __Copyright__ = 'Copyright (c) 2019 Irony'
 __Version__ = 1.0
 
-define('shost', default='127.0.0.1', help='PY机器人地址')
-define('sport', default=65321, help='PY机器人端口')
-define('ahost', default='127.0.0.1', help='接口地址')
-define('aport', default=36524, help='接口端口')
+define('host', default='127.0.0.1',
+       metavar='127.0.0.1 or 0.0.0.0 or other ip', help='PY机器人地址')
+define('cqport', type=int, default=65322, help='CQA端口: 65322')
+define('qlport', type=int, default=65323, help='QQLight端口: 65323')
+define('qyport', type=int, default=65324, help='QY端口: 65324')
 
 
 class BotApplication(Application):
@@ -79,17 +80,33 @@ def main(msgHandler):
     options.log_to_stderr = options.log_to_stderr or True
     options.parse_command_line()
 
-    logging.info('shost: {}'.format(options.shost))
-    logging.info('sport: {}'.format(options.sport))
-    logging.info('ahost: {}'.format(options.ahost))
-    logging.info('aport: {}'.format(options.aport))
+    logging.info('host: {}'.format(options.host))
+    logging.info('cqport: {}'.format(options.cqport))
+    logging.info('qlport: {}'.format(options.qlport))
+    logging.info('qyport: {}'.format(options.qyport))
 
     # 创建本地web服务
-    server = HTTPServer(BotApplication())
-    server.listen(options.sport, options.shost)
+    cqserver = HTTPServer(BotApplication())
+    cqserver.listen(options.cqport, options.host)
+    qlserver = HTTPServer(BotApplication())
+    qlserver.listen(options.qlport, options.host)
+    qyserver = HTTPServer(BotApplication())
+    qyserver.listen(options.qyport, options.host)
+    
     loop = IOLoop.current()
     # 队列处理消息
     loop.spawn_callback(recvMessage, msgHandler)
     # 队列发送消息
     loop.spawn_callback(sendMessage, msgHandler)
     loop.start()
+
+
+if __name__ == '__main__':
+    import sys
+    sys.argv.append('--host=192.168.1.2')
+    sys.argv.append('--qlport=65533')
+    options.parse_command_line()
+    print(options.host)
+    print(options.cqport)
+    print(options.qlport)
+    print(options.qyport)
