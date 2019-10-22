@@ -32,10 +32,10 @@ class IndexHandler(RequestHandler):
         self.finish({'msg': 'ok'})
 
 
-class MahuaHandler(RequestHandler):
+class MessageHandler(RequestHandler):
 
     def prepare(self):
-        super(MahuaHandler, self).prepare()
+        super(MessageHandler, self).prepare()
         if self.request.body:
             try:
                 self._data = json.loads(

@@ -19,7 +19,7 @@ from tornado.options import define
 from tornado.options import options
 from tornado.web import Application
 
-from BaseHandler import MahuaHandler, IndexHandler
+from BaseHandler import MessageHandler, IndexHandler
 
 
 __Author__ = 'Irony'
@@ -27,17 +27,21 @@ __Copyright__ = 'Copyright (c) 2019 Irony'
 __Version__ = 1.0
 
 define('host', default='127.0.0.1',
-       metavar='127.0.0.1 or 0.0.0.0 or other ip', help='PY机器人地址')
-define('cqport', type=int, default=65322, help='CQA端口: 65322')
-define('qlport', type=int, default=65323, help='QQLight端口: 65323')
-define('qyport', type=int, default=65324, help='QY端口: 65324')
+       metavar='127.0.0.1 or 0.0.0.0 or other ip', help='服务端绑定地址')
+define('port', default=52610, help='服务端绑定端口')
+define('cqport', type=int, default=52611,
+       help='酷Q 插件客户端监听端口, 需要在插件中自行设置\n见CQA/app/io.github.richardchien.coolqhttpapi/config.cfg')
+define('qlport', type=int, default=52612,
+       help='QQLight 插件客户端监听端口, 需要在插件中自行设置\n见QQLight/plugin/websocket.protocol/config.json')
+define('qyport', type=int, default=52613,
+       help='契约 插件客户端监听端口, 需要在插件中自行设置\n见QyBot/PC/plugin/com.tayuyu.http/你的QQ号.json文件\n新建你的QQ号.json内容为：{"port":"52613","urlList":["http://127.0.0.1:52610/message"]}')
 
 
 class BotApplication(Application):
 
     def __init__(self, *args, **kwargs):  # @UnusedVariable
         handlers = [
-            (r'/api/ReceiveMahuaOutput', MahuaHandler),
+            (r'/message', MessageHandler),
             (r'/.*', IndexHandler)
         ]
         settings = {'debug': False}
@@ -78,21 +82,22 @@ def main(msgHandler):
     # 解析命令行参数
     options.log_file_prefix = options.log_file_prefix or 'log.log'
     options.log_to_stderr = options.log_to_stderr or True
+    try:
+        options.parse_config_file('config.cfg')
+    except Exception as e:
+        logging.warning(e)
     options.parse_command_line()
 
     logging.info('host: {}'.format(options.host))
+    logging.info('port: {}'.format(options.port))
     logging.info('cqport: {}'.format(options.cqport))
     logging.info('qlport: {}'.format(options.qlport))
     logging.info('qyport: {}'.format(options.qyport))
 
     # 创建本地web服务
-    cqserver = HTTPServer(BotApplication())
-    cqserver.listen(options.cqport, options.host)
-    qlserver = HTTPServer(BotApplication())
-    qlserver.listen(options.qlport, options.host)
-    qyserver = HTTPServer(BotApplication())
-    qyserver.listen(options.qyport, options.host)
-    
+    server = HTTPServer(BotApplication())
+    server.listen(options.port, options.host)
+
     loop = IOLoop.current()
     # 队列处理消息
     loop.spawn_callback(recvMessage, msgHandler)
@@ -105,8 +110,10 @@ if __name__ == '__main__':
     import sys
     sys.argv.append('--host=192.168.1.2')
     sys.argv.append('--qlport=65533')
+    options.parse_config_file('config.cfg')
     options.parse_command_line()
     print(options.host)
+    print(options.port)
     print(options.cqport)
     print(options.qlport)
     print(options.qyport)
