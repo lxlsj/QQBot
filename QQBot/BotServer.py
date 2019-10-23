@@ -12,13 +12,13 @@ Created on 2019年10月23日
 
 import logging
 
-import colorama
 from tornado.gen import coroutine, sleep
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from tornado.options import define
 from tornado.options import options
 from tornado.web import Application
+import colorama
 
 from BaseHandler import MessageHandler, IndexHandler
 from QQBot.BotHandlers import Handlers
@@ -31,7 +31,7 @@ __Version__ = 1.0
 define('host', default='127.0.0.1',
        metavar='127.0.0.1 or 0.0.0.0 or other ip', help='服务端绑定地址')
 define('port', default=52610, help='服务端绑定端口')
-define('delay', default=0.01, type=float, '消息队列的休眠时间')
+define('delay', default=0.01, type=float, help='消息队列的休眠时间')
 define('cqport', type=int, default=52611,
        help='酷Q 插件客户端监听端口, 需要在插件中自行设置\n见CQA/app/io.github.richardchien.coolqhttpapi/config.cfg')
 define('qlport', type=int, default=52612,
@@ -44,10 +44,11 @@ class BotApplication(Application):
 
     def __init__(self, *args, **kwargs):
         # 扩展路由
-        handlers = [h for h in Handlers if h[0] != '/message']
+        handlers = [h for h in Handlers if (
+            h[0] != '/message' and h[0] != '.*')]
         handlers = handlers + [
             (r'/message', MessageHandler),
-            (r'/.*', IndexHandler)
+            (r'.*', IndexHandler)
         ]
         settings = {'debug': False}
         super(BotApplication, self).__init__(handlers, **settings)
@@ -115,7 +116,10 @@ if __name__ == '__main__':
     import sys
     sys.argv.append('--host=192.168.1.2')
     sys.argv.append('--qlport=65533')
-    options.parse_config_file('config.cfg')
+    try:
+        options.parse_config_file('config.cfg')
+    except:
+        pass
     options.parse_command_line()
     print(options.host)
     print(options.port)
