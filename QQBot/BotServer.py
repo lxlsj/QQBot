@@ -39,7 +39,6 @@ define('qlport', type=int, default=52612,
 define('qyport', type=int, default=52613,
        help='契约 插件客户端监听端口, 需要在插件中自行设置\n见QyBot/PC/plugin/com.tayuyu.http/你的QQ号.json文件\n新建你的QQ号.json内容为：{"port":"52613","urlList":["http://127.0.0.1:52610/message"]}')
 
-
 class BotApplication(Application):
 
     def __init__(self, *args, **kwargs):
