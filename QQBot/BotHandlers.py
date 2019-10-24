@@ -16,7 +16,7 @@ from tornado.escape import to_basestring
 from tornado.gen import coroutine
 from tornado.web import RequestHandler
 
-from QQBot.BotInterface import MessageInQueue
+from QQBot.BotInterface import MessageInQueue, DottedDict
 
 
 __Author__ = 'Irony'
@@ -26,18 +26,11 @@ __Version__ = 1.0
 Handlers = []
 
 
-class DottedDict(dict):
+class IndexHandler(RequestHandler):
 
-    def __getattr__(self, attr):
-        try:
-            return self[attr]
-        except KeyError as e:
-            logging.debug(e)
-            return None
-
-    __setattr__ = dict.__setitem__
-
-    __delattr__ = dict.__delitem__
+    @coroutine
+    def get(self, *args, **kwargs):  # @UnusedVariable
+        self.finish({'msg': 'ok'})
 
 
 class MessageHandler(RequestHandler):

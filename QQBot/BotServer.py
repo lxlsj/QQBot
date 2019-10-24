@@ -20,8 +20,8 @@ from tornado.options import options
 from tornado.web import Application
 import colorama
 
-from BaseHandler import MessageHandler, IndexHandler
-from QQBot.BotHandlers import Handlers
+from QQBot.BotHandlers import Handlers, MessageHandler, IndexHandler
+from QQBot.BotInterface import MessageOutQueue, MessageInQueue, Interface
 
 
 __Author__ = 'Irony'
@@ -54,39 +54,40 @@ class BotApplication(Application):
 
 
 @coroutine
-def recvMessage(msgHandler):
+def recvMessage():
     """队列处理消息
     """
     while 1:
         nxt = sleep(options.delay)
         try:
-            yield msgHandler._recv_message()
+            message = yield MessageInQueue.get()
+            # 解析数据整理格式
+            message = Interface.getMsgInfo(message)
+            print(message)
         except Exception as e:
             logging.exception(e)
         yield nxt
 
 
 @coroutine
-def sendMessage(msgHandler):
+def sendMessage():
     """队列发送消息
     """
     while 1:
         nxt = sleep(options.delay)
         try:
-            yield msgHandler._send_message()
+            message = yield MessageOutQueue.get()
         except Exception as e:
             logging.exception(e)
         yield nxt
 
 
-def main(msgHandler):
+def main():
     # 初始化日志和异常捕捉
     colorama.init()
     # enable_pretty_logging()
 
     # 解析命令行参数
-    options.log_file_prefix = options.log_file_prefix or 'log.log'
-    options.log_to_stderr = options.log_to_stderr or True
     try:
         options.parse_config_file('config.cfg')
     except Exception as e:
@@ -105,9 +106,9 @@ def main(msgHandler):
 
     loop = IOLoop.current()
     # 队列处理消息
-    loop.spawn_callback(recvMessage, msgHandler)
+    loop.spawn_callback(recvMessage)
     # 队列发送消息
-    loop.spawn_callback(sendMessage, msgHandler)
+    loop.spawn_callback(sendMessage)
     loop.start()
 
 
