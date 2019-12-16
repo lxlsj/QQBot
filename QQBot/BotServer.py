@@ -12,13 +12,13 @@ Created on 2019年10月23日
 
 import logging
 
+import colorama
 from tornado.gen import coroutine, sleep
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from tornado.options import define
 from tornado.options import options
 from tornado.web import Application
-import colorama
 
 from QQBot.BotHandlers import Handlers, MessageHandler, IndexHandler
 from QQBot.BotInterface import MessageOutQueue, MessageInQueue, Interface
@@ -28,16 +28,32 @@ __Author__ = 'Irony'
 __Copyright__ = 'Copyright (c) 2019'
 __Version__ = 1.0
 
-define('host', default='127.0.0.1',
-       metavar='127.0.0.1 or 0.0.0.0 or other ip', help='服务端绑定地址')
+define('host', default='0.0.0.0',
+       metavar='0.0.0.0 或者 127.0.0.1', help='服务端绑定地址')
 define('port', default=52610, help='服务端绑定端口')
 define('delay', default=0.01, type=float, help='消息队列的休眠时间')
+
+# 酷Q
+define('cqhost', type=str, default='127.0.0.1',
+       metavar='0.0.0.0 或者 127.0.0.1 或者 其它远程地址',
+       help='酷Q 插件客户端监听地址，比如0.0.0.0 或者 127.0.0.1 或者 其它远程地址')
 define('cqport', type=int, default=52611,
        help='酷Q 插件客户端监听端口, 需要在插件中自行设置\n见CQA/app/io.github.richardchien.coolqhttpapi/config.cfg')
+
+# QQLight
+define('qlhost', type=str, default='127.0.0.1',
+       metavar='0.0.0.0 或者 127.0.0.1 或者 其它远程地址',
+       help='QQLight 插件客户端监听地址，比如0.0.0.0 或者 127.0.0.1 或者 其它远程地址')
 define('qlport', type=int, default=52612,
        help='QQLight 插件客户端监听端口, 需要在插件中自行设置\n见QQLight/plugin/websocket.protocol/config.json')
+
+# 契约
+define('qyhost', type=str, default='127.0.0.1',
+       metavar='0.0.0.0 或者 127.0.0.1 或者 其它远程地址',
+       help='契约 插件客户端监听地址，比如0.0.0.0 或者 127.0.0.1 或者 其它远程地址')
 define('qyport', type=int, default=52613,
        help='契约 插件客户端监听端口, 需要在插件中自行设置\n见QyBot/PC/plugin/com.tayuyu.http/你的QQ号.json文件\n新建你的QQ号.json内容为：{"port":"52613","urlList":["http://127.0.0.1:52610/message"]}')
+
 
 class BotApplication(Application):
 
