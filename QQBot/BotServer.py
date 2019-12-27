@@ -14,11 +14,13 @@ import logging
 
 import colorama
 from tornado.gen import coroutine, sleep
+from tornado.httpclient import HTTPRequest
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from tornado.options import define
 from tornado.options import options
 from tornado.web import Application
+from tornado.websocket import websocket_connect
 
 from QQBot.BotHandlers import Handlers, MessageHandler, IndexHandler
 from QQBot.BotInterface import MessageOutQueue, MessageInQueue, Interface
@@ -98,6 +100,19 @@ def sendMessage():
         yield nxt
 
 
+@coroutine
+def setupQQLight():
+    try:
+        ws = yield websocket_connect(HTTPRequest('ws://{}:{}/'.format(options.qlhost, options.qlport), validate_cert=False))
+        while 1:
+            nxt = sleep(options.delay)
+            msg = yield ws.read_message()
+            print('msg', msg)
+            yield nxt
+    except:
+        raise
+
+
 def main():
     # 初始化日志和异常捕捉
     colorama.init()
@@ -118,6 +133,8 @@ def main():
     loop.spawn_callback(recvMessage)
     # 队列发送消息
     loop.spawn_callback(sendMessage)
+    # qqlight
+    loop.spawn_callback(setupQQLight)
     loop.start()
 
 
