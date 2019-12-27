@@ -35,22 +35,22 @@ define('delay', default=0.01, type=float, help='消息队列的休眠时间')
 
 # 酷Q
 define('cqhost', type=str, default='127.0.0.1',
-       metavar='0.0.0.0 或者 127.0.0.1 或者 其它远程地址',
-       help='酷Q 插件客户端监听地址，比如0.0.0.0 或者 127.0.0.1 或者 其它远程地址')
+       metavar='127.0.0.1 或者 其它远程地址',
+       help='酷Q 插件客户端监听地址，比如127.0.0.1 或者 其它远程地址')
 define('cqport', type=int, default=52611,
        help='酷Q 插件客户端监听端口, 需要在插件中自行设置\n见CQA/app/io.github.richardchien.coolqhttpapi/config.cfg')
 
 # QQLight
 define('qlhost', type=str, default='127.0.0.1',
-       metavar='0.0.0.0 或者 127.0.0.1 或者 其它远程地址',
-       help='QQLight 插件客户端监听地址，比如0.0.0.0 或者 127.0.0.1 或者 其它远程地址')
+       metavar='127.0.0.1 或者 其它远程地址',
+       help='QQLight 插件客户端监听地址，比如127.0.0.1 或者 其它远程地址')
 define('qlport', type=int, default=52612,
        help='QQLight 插件客户端监听端口, 需要在插件中自行设置\n见QQLight/plugin/websocket.protocol/config.json')
 
 # 契约
 define('qyhost', type=str, default='127.0.0.1',
-       metavar='0.0.0.0 或者 127.0.0.1 或者 其它远程地址',
-       help='契约 插件客户端监听地址，比如0.0.0.0 或者 127.0.0.1 或者 其它远程地址')
+       metavar='127.0.0.1 或者 其它远程地址',
+       help='契约 插件客户端监听地址，比如127.0.0.1 或者 其它远程地址')
 define('qyport', type=int, default=52613,
        help='契约 插件客户端监听端口, 需要在插件中自行设置\n见QyBot/PC/plugin/com.tayuyu.http/你的QQ号.json文件\n新建你的QQ号.json内容为：{"port":"52613","urlList":["http://127.0.0.1:52610/message"]}')
 
@@ -103,18 +103,11 @@ def main():
     colorama.init()
     # enable_pretty_logging()
 
-    # 解析命令行参数
-    try:
-        options.parse_config_file('config.cfg')
-    except Exception as e:
-        logging.warning(e)
-    options.parse_command_line()
-
-    logging.info('host: {}'.format(options.host))
-    logging.info('port: {}'.format(options.port))
-    logging.info('cqport: {}'.format(options.cqport))
-    logging.info('qlport: {}'.format(options.qlport))
-    logging.info('qyport: {}'.format(options.qyport))
+    log = logging.getLogger('tornado.application')
+    log.info('listen on %s:%s', options.host, options.port)
+    log.info('cq bot: %s:%s', options.cqhost, options.cqport)
+    log.info('ql bot: %s:%s', options.qlhost, options.qlport)
+    log.info('qy bot: %s:%s', options.qyhost, options.qyport)
 
     # 创建本地web服务
     server = HTTPServer(BotApplication())
@@ -129,16 +122,4 @@ def main():
 
 
 if __name__ == '__main__':
-    import sys
-    sys.argv.append('--host=192.168.1.2')
-    sys.argv.append('--qlport=65533')
-    try:
-        options.parse_config_file('config.cfg')
-    except:
-        pass
-    options.parse_command_line()
-    print(options.host)
-    print(options.port)
-    print(options.cqport)
-    print(options.qlport)
-    print(options.qyport)
+    main()
