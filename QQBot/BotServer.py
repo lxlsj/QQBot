@@ -13,7 +13,6 @@ Created on 2019年10月23日
 import json
 import logging
 
-import colorama
 from tornado.escape import to_basestring
 from tornado.gen import coroutine, sleep
 from tornado.httpclient import HTTPRequest
@@ -23,6 +22,7 @@ from tornado.options import define
 from tornado.options import options
 from tornado.web import Application
 from tornado.websocket import websocket_connect
+import colorama
 
 from QQBot import BotInterface
 from QQBot.BotHandlers import Handlers, MessageHandler, IndexHandler

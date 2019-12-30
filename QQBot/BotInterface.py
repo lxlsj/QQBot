@@ -10,11 +10,11 @@ Created on 2019年10月24日
 @description: 
 """
 from enum import Enum
+from urllib.parse import urlencode
 import json
 import logging
 import os
 import re
-from urllib.parse import urlencode
 
 from tornado.escape import to_basestring
 from tornado.gen import coroutine
@@ -138,7 +138,8 @@ class Interface(Enum):
         """提取图片url
         :param message:    原始消息
         """
-        return re.findall('\[(?:CQ:image.*?,url|QQ:pic|LQ:image.*?,urls)=(.*?)\]', message)
+        return [url if url.startswith('http') else 'https://gchat.qpic.cn/gchatpic_new/0/0-0-{}/0'.format(
+            url.replace('-', '').upper().split('.')[0]) for url in re.findall('\[(?:CQ:image.*?,url|QQ:pic|LQ:image.*?,urls)=(.*?)\]', message)]
 
     def filterMessage(self, message):
         """过滤消息内容去掉艾特、表情、图片、链接等信息
