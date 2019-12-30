@@ -10,9 +10,11 @@ Created on 2019年10月23日
 @description: 
 """
 
+import json
 import logging
 
 import colorama
+from tornado.escape import to_basestring
 from tornado.gen import coroutine, sleep
 from tornado.httpclient import HTTPRequest
 from tornado.httpserver import HTTPServer
@@ -22,8 +24,10 @@ from tornado.options import options
 from tornado.web import Application
 from tornado.websocket import websocket_connect
 
+from QQBot import BotInterface
 from QQBot.BotHandlers import Handlers, MessageHandler, IndexHandler
-from QQBot.BotInterface import MessageOutQueue, MessageInQueue, Interface
+from QQBot.BotInterface import MessageOutQueue, MessageInQueue, Interface,\
+    DottedDict
 
 
 __Author__ = 'Irony'
@@ -57,6 +61,9 @@ define('qyport', type=int, default=52613,
        help='契约 插件客户端监听端口, 需要在插件中自行设置\n见QyBot/PC/plugin/com.tayuyu.http/你的QQ号.json文件\n新建你的QQ号.json内容为：{"port":"52613","urlList":["http://127.0.0.1:52610/message"]}')
 
 
+log = logging.getLogger('tornado.application')
+
+
 class BotApplication(Application):
 
     def __init__(self, *args, **kwargs):
@@ -80,10 +87,10 @@ def recvMessage():
         try:
             message = yield MessageInQueue.get()
             # 解析数据整理格式
-            message = Interface.getMsgInfo(message)
+            message = Interface._getMsgInfo(message)
             print(message)
         except Exception as e:
-            logging.exception(e)
+            log.exception(e)
         yield nxt
 
 
@@ -96,21 +103,31 @@ def sendMessage():
         try:
             message = yield MessageOutQueue.get()
         except Exception as e:
-            logging.exception(e)
+            log.exception(e)
         yield nxt
 
 
 @coroutine
 def setupQQLight():
-    try:
-        ws = yield websocket_connect(HTTPRequest('ws://{}:{}/'.format(options.qlhost, options.qlport), validate_cert=False))
-        while 1:
-            nxt = sleep(options.delay)
-            msg = yield ws.read_message()
-            print('msg', msg)
-            yield nxt
-    except:
-        raise
+    while 1:
+        try:
+            BotInterface.QQLightWs = yield websocket_connect(HTTPRequest('ws://{}:{}/'.format(options.qlhost, options.qlport), validate_cert=False))
+            while 1:
+                nxt = sleep(options.delay)
+                message = yield BotInterface.QQLightWs.read_message()
+                try:
+                    message = json.loads(
+                        to_basestring(message), object_hook=DottedDict)
+                    yield MessageInQueue.put(message)
+                except Exception as e:
+                    log.exception(e)
+                yield nxt
+        except Exception as e:
+            log.exception(e)
+
+        # 300秒后重连
+        log.info('reconnect qqlight bot after 300s')
+        yield sleep(300)
 
 
 def main():
@@ -118,7 +135,6 @@ def main():
     colorama.init()
     # enable_pretty_logging()
 
-    log = logging.getLogger('tornado.application')
     log.info('listen on %s:%s', options.host, options.port)
     log.info('cq bot: %s:%s', options.cqhost, options.cqport)
     log.info('ql bot: %s:%s', options.qlhost, options.qlport)

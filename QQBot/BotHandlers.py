@@ -50,5 +50,4 @@ class MessageHandler(RequestHandler):
     def post(self, *args, **kwargs):  # @UnusedVariable
         # 把消息放入队列
         yield MessageInQueue.put(self._data)
-        print(self._data)
         self.finish({'msg': 'ok'})
