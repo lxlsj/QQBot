@@ -27,7 +27,7 @@ from tornado.web import Application
 from tornado.websocket import websocket_connect
 
 from QQBots import BotInterface
-from QQBots.BotHandlers import Handlers, MessageHandler, IndexHandler
+from QQBots.BotHandlers import MessageHandler, IndexHandler, LoginHandler
 from QQBots.BotInterface import MessageOutQueue, MessageInQueue, Interface,\
     DottedDict
 
@@ -70,10 +70,11 @@ class BotApplication(Application):
 
     def __init__(self, *args, **kwargs):
         # 扩展路由
-        handlers = [h for h in Handlers if (
-            h[0] != '/message' and h[0] != '.*')]
-        handlers.insert(0, (r'/message', MessageHandler))
-        handlers.append((r'.*', IndexHandler))
+        handlers = [
+            (r'/message', MessageHandler),
+            (r'/login', LoginHandler)
+            (r'.*', IndexHandler)
+        ]
         dirpath = os.path.dirname(BotInterface.__file__)
         settings = {
             'debug': False,
@@ -81,7 +82,8 @@ class BotApplication(Application):
             'static_path': os.path.join(dirpath, 'static'),
             'template_path': os.path.join(dirpath, 'static'),
             'cookie_secret': base64.b64encode(os.urandom(32)).decode(),
-            'xsrf_cookies': False
+            'xsrf_cookies': False,
+            'login_url': '/login'
         }
         super(BotApplication, self).__init__(handlers, **settings)
 

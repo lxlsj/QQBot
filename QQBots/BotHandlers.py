@@ -11,10 +11,11 @@ Created on 2019年10月22日
 """
 import json
 import logging
+from urllib.parse import quote
 
 from tornado.escape import to_basestring
 from tornado.gen import coroutine
-from tornado.web import RequestHandler
+from tornado.web import RequestHandler, HTTPError, authenticated
 
 from QQBots.BotInterface import MessageInQueue, DottedDict
 
@@ -23,17 +24,36 @@ __Author__ = 'Irony'
 __Copyright__ = 'Copyright (c) 2019'
 __Version__ = 1.0
 
-Handlers = []
+
+class BaseHandler(RequestHandler):
+
+    def get_current_user(self):
+        return self.get_secure_cookie('username')
 
 
-class IndexHandler(RequestHandler):
+class IndexHandler(BaseHandler):
 
     @coroutine
+    @authenticated
     def get(self, *args, **kwargs):  # @UnusedVariable
         self.finish({'msg': 'ok'})
 
 
-class MessageHandler(RequestHandler):
+class LoginHandler(BaseHandler):
+
+    @coroutine
+    def get(self, *args, **kwargs):
+        self.render('login.html', next=quote(self.get_argument('next', '/')))
+
+    @coroutine
+    def post(self, *args, **kwargs):
+        username = self.get_argument('username')
+        password = self.get_argument('password')
+        self.set_secure_cookie('username', username)
+        self.redirect(self.get_argument('next', '/'))
+
+
+class MessageHandler(BaseHandler):
 
     def prepare(self):
         super(MessageHandler, self).prepare()
