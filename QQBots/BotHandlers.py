@@ -4,9 +4,9 @@
 """
 Created on 2019年10月22日
 @author: Irony
-@site: https://pyqt5.com https://github.com/892768447
+@site: https://pyqt.site https://github.com/892768447
 @email: 892768447@qq.com
-@file: QQBot.BotHandlers
+@file: QQBots.BotHandlers
 @description: 
 """
 import json
@@ -16,7 +16,7 @@ from tornado.escape import to_basestring
 from tornado.gen import coroutine
 from tornado.web import RequestHandler
 
-from QQBot.BotInterface import MessageInQueue, DottedDict
+from QQBots.BotInterface import MessageInQueue, DottedDict
 
 
 __Author__ = 'Irony'

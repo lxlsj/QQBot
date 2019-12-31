@@ -4,15 +4,18 @@
 """
 Created on 2019年10月23日
 @author: Irony
-@site: https://pyqt5.com https://github.com/892768447
+@site: https://pyqt.site https://github.com/892768447
 @email: 892768447@qq.com
-@file: QQBot.BotServer
+@file: QQBots.BotServer
 @description: 
 """
 
+import base64
 import json
 import logging
+import os
 
+import colorama
 from tornado.escape import to_basestring
 from tornado.gen import coroutine, sleep
 from tornado.httpclient import HTTPRequest
@@ -22,11 +25,10 @@ from tornado.options import define
 from tornado.options import options
 from tornado.web import Application
 from tornado.websocket import websocket_connect
-import colorama
 
-from QQBot import BotInterface
-from QQBot.BotHandlers import Handlers, MessageHandler, IndexHandler
-from QQBot.BotInterface import MessageOutQueue, MessageInQueue, Interface,\
+from QQBots import BotInterface
+from QQBots.BotHandlers import Handlers, MessageHandler, IndexHandler
+from QQBots.BotInterface import MessageOutQueue, MessageInQueue, Interface,\
     DottedDict
 
 
@@ -61,7 +63,7 @@ define('qyport', type=int, default=52613,
        help='契约 插件客户端监听端口, 需要在插件中自行设置\n见QyBot/PC/plugin/com.tayuyu.http/你的QQ号.json文件\n新建你的QQ号.json内容为：{"port":"52613","urlList":["http://127.0.0.1:52610/message"]}')
 
 
-log = logging.getLogger('tornado.application')
+log = logging.getLogger('tornado.general')
 
 
 class BotApplication(Application):
@@ -70,11 +72,17 @@ class BotApplication(Application):
         # 扩展路由
         handlers = [h for h in Handlers if (
             h[0] != '/message' and h[0] != '.*')]
-        handlers = handlers + [
-            (r'/message', MessageHandler),
-            (r'.*', IndexHandler)
-        ]
-        settings = {'debug': False}
+        handlers.insert(0, (r'/message', MessageHandler))
+        handlers.append((r'.*', IndexHandler))
+        dirpath = os.path.dirname(BotInterface.__file__)
+        settings = {
+            'debug': False,
+            'compiled_template_cache': False,  # 关闭模板缓存
+            'static_path': os.path.join(dirpath, 'static'),
+            'template_path': os.path.join(dirpath, 'static'),
+            'cookie_secret': base64.b64encode(os.urandom(32)).decode(),
+            'xsrf_cookies': False
+        }
         super(BotApplication, self).__init__(handlers, **settings)
 
 
@@ -134,6 +142,7 @@ def main():
     # 初始化日志和异常捕捉
     colorama.init()
     # enable_pretty_logging()
+    options.logging = 'info'
 
     log.info('listen on %s:%s', options.host, options.port)
     log.info('cq bot: %s:%s', options.cqhost, options.cqport)
