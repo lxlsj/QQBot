@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="icon" href="images/favicon.ico" sizes="32x32">
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="description" content="登录">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>登录</title>
+        <!-- Add to homescreen for Chrome on Android -->
+        <meta name="mobile-web-app-capable" content="yes">
+        <!-- Add to homescreen for Safari on iOS -->
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <meta name="apple-mobile-web-app-title" content="登录">
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,300,100,700,900" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <!-- inject:css -->
+        <link rel="stylesheet" href="css/application.min.css">
+        <!-- endinject -->
+    </head>
+    <body>
+        <div class="mdl-layout mdl-js-layout color--gray is-small-screen login">
+            <main class="mdl-layout__content">
+                <div class="mdl-card mdl-card__login mdl-shadow--2dp">
+                    <div class="mdl-card__supporting-text color--dark-gray">
+                        <div class="mdl-grid">
+                            <div class="mdl-cell mdl-cell--12-col mdl-cell--4-col-phone">
+                                <span class="mdl-card__title-text text-color--smooth-gray">后台管理</span>
+                            </div>
+                            <div class="mdl-cell mdl-cell--12-col mdl-cell--4-col-phone">
+                                <span class="login-name text-color--white">登 录</span>
+                                <span class="login-secondary-text text-color--smoke">输入信息</span>
+                            </div>
+                            <div class="mdl-cell mdl-cell--12-col mdl-cell--4-col-phone">
+                                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-size">
+                                    <input class="mdl-textfield__input" type="text" id="username">
+                                    <label class="mdl-textfield__label" for="username">账号</label>
+                                </div>
+                                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-size">
+                                    <input class="mdl-textfield__input" type="text" id="password">
+                                    <label class="mdl-textfield__label" for="password">密码</label>
+                                </div>
+                                <a href="#" class="login-link">忘记密码？</a>
+                            </div>
+                            <div class="mdl-cell mdl-cell--12-col mdl-cell--4-col-phone submit-cell">
+                                <div class="mdl-layout-spacer"></div>
+                                <a href="/login">
+                                    <buttons class="mdl-button mdl-js-button mdl-button--raised color--light-blue">登 录</buttons>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <!-- inject:js -->
+        <script src="js/material.min.js"></script>
+        <script src="js/layout/layout.min.js"></script>
+        <script src="js/scroll/scroll.min.js"></script>
+        <!-- endinject -->
+    </body>
+</html>
