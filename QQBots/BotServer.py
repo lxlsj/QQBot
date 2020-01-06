@@ -15,7 +15,6 @@ import json
 import logging
 import os
 
-import colorama
 from tornado.escape import to_basestring
 from tornado.gen import coroutine, sleep
 from tornado.httpclient import HTTPRequest
@@ -23,11 +22,13 @@ from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from tornado.options import define
 from tornado.options import options
-from tornado.web import Application
+from tornado.web import Application, StaticFileHandler
 from tornado.websocket import websocket_connect
+import colorama
 
 from QQBots import BotInterface
-from QQBots.BotHandlers import MessageHandler, IndexHandler, LoginHandler
+from QQBots.BotHandlers import MessageHandler, IndexHandler, LoginHandler,\
+    NotFoundHandler
 from QQBots.BotInterface import MessageOutQueue, MessageInQueue, Interface,\
     DottedDict
 
@@ -69,12 +70,6 @@ log = logging.getLogger('tornado.general')
 class BotApplication(Application):
 
     def __init__(self, *args, **kwargs):
-        # 扩展路由
-        handlers = [
-            (r'/message', MessageHandler),
-            (r'/login', LoginHandler)
-            (r'.*', IndexHandler)
-        ]
         dirpath = os.path.dirname(BotInterface.__file__)
         settings = {
             'debug': False,
@@ -85,6 +80,18 @@ class BotApplication(Application):
             'xsrf_cookies': False,
             'login_url': '/login'
         }
+        handlers = [
+            (r'/', IndexHandler),
+            (r'/message', MessageHandler),
+            (r'/login', LoginHandler),
+            (r'/js/(.*)', StaticFileHandler,
+             {'path': os.path.join(dirpath, 'static', 'js')}),
+            (r'/css/(.*)', StaticFileHandler,
+             {'path': os.path.join(dirpath, 'static', 'css')}),
+            (r'/images/(.*)', StaticFileHandler,
+             {'path': os.path.join(dirpath, 'static', 'images')}),
+            (r'.*', NotFoundHandler)
+        ]
         super(BotApplication, self).__init__(handlers, **settings)
 
 

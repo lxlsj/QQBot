@@ -39,6 +39,14 @@ class IndexHandler(BaseHandler):
         self.finish({'msg': 'ok'})
 
 
+class NotFoundHandler(BaseHandler):
+
+    @coroutine
+    def get(self, *args, **kwargs):  # @UnusedVariable
+        self.set_status(404)
+        self.render('404.html')
+
+
 class LoginHandler(BaseHandler):
 
     @coroutine
